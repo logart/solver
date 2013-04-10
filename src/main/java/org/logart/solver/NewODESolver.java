@@ -17,15 +17,15 @@ public class NewODESolver extends Solver {
 
     @Override
     public XYSeries solve() throws FunctionEvaluationException {
-        XYSeries result = new XYSeries();
+        XYSeries result = new XYSeries("new method");
+//        for (int k = 0; k < getIterationCount(); ++k) {
         RealMatrix Xn = new Array2DRowRealMatrix(new double[]{0.4, 0.4});
-        //    Z0 = h*G(X0);
-        RealMatrix Zn = new Array2DRowRealMatrix(getG().value(Xn.getColumn(0))).scalarMultiply(getStep());
+        RealMatrix Zn = new Array2DRowRealMatrix(getFunction().value(Xn.getColumn(0))).scalarMultiply(getStep());
         int i = 0;
-        while (i < 100) {
-//      RealMatrix Xnext0 = Xn.add(Zn);
+        while (i < 13800/*getIterationCount()*/) {
+            long start = System.currentTimeMillis();
 
-            Array2DRowRealMatrix valueOfFunctionInPoint = new Array2DRowRealMatrix(getG().value(Xn.getColumn(0)));
+            Array2DRowRealMatrix valueOfFunctionInPoint = new Array2DRowRealMatrix(getFunction().value(Xn.getColumn(0)));
             RealMatrix valueOfFunctionInPointWithZn = (valueOfFunctionInPoint.scalarMultiply(epsilon)).add(Zn);
             RealMatrix Znext = valueOfFunctionInPointWithZn.scalarMultiply(omega);
             RealMatrix Xnext = Xn.add(Znext);
@@ -34,12 +34,21 @@ public class NewODESolver extends Solver {
             Xn = Xnext;
             ++i;
 
+            long executionTime = System.currentTimeMillis() - start;
+            addGlobalExecutionTime(executionTime);
+
+            if (Double.isNaN(Xn.getColumn(0)[0]) || Double.isNaN(Xn.getColumn(0)[1])) {
+                System.out.println("NaN on " + i + " iteration!");
+                return result;
+            }
+
             result.add(new Point(Xn.getColumn(0)[0], Xn.getColumn(0)[1]));
             for (double v : Xn.getColumn(0)) {
                 System.out.print(v + " ");
             }
             System.out.println("\n");
         }
+//        }
         System.out.println("finish new solver");
         return result;
     }

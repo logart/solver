@@ -11,7 +11,7 @@ import org.logart.solver.RungeKuttaSolver;
 import org.logart.solver.Solver;
 
 public class ApplicationController extends Application {
-    private ResultShowerFX shower;
+    private ResultShower shower;
     private Solver solver1;
     private Solver solver2;
     private FormulaParser parser;
@@ -22,16 +22,24 @@ public class ApplicationController extends Application {
 
     @Override
     public void start(Stage primaryStage) throws FunctionEvaluationException {
-        shower = new ResultShowerFX(primaryStage);
         //TODO implement
 //        MultivariateVectorialFunction function = parser.parse();
 //        x
+//        MultivariateVectorialFunction function = new MultivariateVectorialFunction() {
+//            @Override
+//            public double[] value(double[] point) throws FunctionEvaluationException, IllegalArgumentException {
+//                return new double[]{
+//                        -point[0] - point[0] * point[0] + point[0] * point[1] + 8 * point[1] * point[1],
+//                        point[0] - 2 * point[1] + point[0] * point[1] + point[1] * point[1]
+//                };
+//            }
+//        };
         MultivariateVectorialFunction function = new MultivariateVectorialFunction() {
             @Override
             public double[] value(double[] point) throws FunctionEvaluationException, IllegalArgumentException {
                 return new double[]{
-                        -point[0] - point[0] * point[0] + point[0] * point[1] + 8 * point[1] * point[1],
-                        point[0] - 2 * point[1] + point[0] * point[1] + point[1] * point[1]
+                        point[0] * point[0] - point[0] * point[1] + 1,
+                        point[0] - point[1] * point[1] + point[1]
                 };
             }
         };
@@ -39,6 +47,9 @@ public class ApplicationController extends Application {
         solver2 = new RungeKuttaSolver(function);
         XYSeries data1 = solver1.solve();
         XYSeries data2 = solver2.solve();
+
+        shower = new ResultShower(/*primaryStage,*/ solver1.getExecutionTime(), solver2.getExecutionTime());
+
         shower.add(data1);
         shower.add(data2);
         shower.show();

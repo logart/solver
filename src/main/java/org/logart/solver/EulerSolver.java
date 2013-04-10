@@ -18,13 +18,13 @@ public class EulerSolver extends Solver {
 
     @Override
     public XYSeries solve() throws FunctionEvaluationException {
-        XYSeries result = new XYSeries();
+        XYSeries result = new XYSeries("Euler method");
         RealMatrix Xn = new Array2DRowRealMatrix(new double[]{0.0, 0.0});
 
         int i = 0;
         while (i < 100) {
             ++i;
-            RealMatrix xNext = (new Array2DRowRealMatrix(getG().value(Xn.getColumn(0))).scalarMultiply(getStep())).add(Xn);
+            RealMatrix xNext = (new Array2DRowRealMatrix(getFunction().value(Xn.getColumn(0))).scalarMultiply(getStep())).add(Xn);
 
             result.add(new Point(Xn.getColumn(0)[0], Xn.getColumn(0)[1]));
             Xn = xNext;

@@ -2,6 +2,8 @@ package org.logart.solver;
 
 import org.apache.commons.math.FunctionEvaluationException;
 import org.apache.commons.math.analysis.MultivariateVectorialFunction;
+import org.apache.commons.math.linear.Array2DRowRealMatrix;
+import org.apache.commons.math.linear.RealMatrix;
 import org.logart.model.Point;
 import org.logart.model.XYSeries;
 
@@ -14,49 +16,32 @@ public class RungeKuttaSolver extends Solver {
 
     @Override
     public XYSeries solve() throws FunctionEvaluationException {
-        int k = 2;
-        double X10, X11, X20, X21;
-        double k1, k2, k3, k4;
-        double q1, q2, q3, q4;
+        XYSeries result = new XYSeries("R-K method");
+//        k1 = getFunction().value()
 
-        X10 = 0.4;
-        X20 = 0.4;
+        RealMatrix yNext, k1, k2, k3, k4;
+//        for (int k = 0; k < getIterationCount(); ++k) {
 
-        XYSeries result = new XYSeries();
         int i = 0;
-        while (i < 100) {
+        yNext = new Array2DRowRealMatrix(new double[]{0.4, 0.4});
+        while (i < /*getIterationCount()*/10300) {
             ++i;
-            k1 = getStep() * f(X10, X20);
-            q1 = getStep() * g(X10, X20);
+            long start = System.currentTimeMillis();
+            k1 = new Array2DRowRealMatrix(getFunction().value(yNext.getColumn(0))).scalarMultiply(getStep());
+            k2 = new Array2DRowRealMatrix(getFunction().value(yNext.add(k1.scalarMultiply(0.5)).getColumn(0))).scalarMultiply(getStep());
+            k3 = new Array2DRowRealMatrix(getFunction().value(yNext.add(k2.scalarMultiply(0.5)).getColumn(0))).scalarMultiply(getStep());
+            k4 = new Array2DRowRealMatrix(getFunction().value(yNext.add(k3).getColumn(0))).scalarMultiply(getStep());
 
-            k2 = getStep() * f(X10 + getStep() / 2.0, X20 + k1 / 2.0);
-            q2 = getStep() * g(X10 + getStep() / 2.0, X20 + q1 / 2.0);
-
-            k3 = getStep() * f(X10 + getStep() / 2.0, X20 + k2 / 2.0);
-            q3 = getStep() * g(X10 + getStep() / 2.0, X20 + q2 / 2.0);
-
-            k4 = getStep() * f(X10 + getStep(), X20 + k3);
-            q4 = getStep() * g(X10 + getStep(), X20 + q3);
-
-            X11 = X10 + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
-            X21 = X20 + (q1 + 2.0 * q2 + 2.0 * q3 + q4) / 6.0;
-            result.add(new Point(r(X10, k), r(X20, k)));
-            System.out.println("\t" + r(X10, k) + "\t\t" + r(X20, k));
-            X10 = X11;
-            X20 = X21;
+            yNext = yNext.add(k1.add(k2).add(k3).add(k4).scalarMultiply(0.3333333333333333333333333333333333333333));
+            addGlobalExecutionTime(System.currentTimeMillis() - start);
+            if (Double.isNaN(yNext.getColumn(0)[0]) || Double.isNaN(yNext.getColumn(0)[1])) {
+                System.out.println("NaN on " + i + " iteration!");
+                return result;
+            }
+            result.add(new Point(yNext.getColumn(0)[0], yNext.getColumn(0)[1]));
+            System.out.println("\t" + yNext.getColumn(0)[0] + "\t\t" + yNext.getColumn(0)[1]);
         }
+//        }
         return result;
-    }
-
-    private static double r(double value, int k) {
-        return (double) Math.round((Math.pow(10, k) * value)) / Math.pow(10, k);
-    }
-
-    private static double f(double x, double y) {
-        return (x * x) - y + 1;
-    }
-
-    private static double g(double x, double y) {
-        return x - Math.cos(3.14 * y / 2.0);
     }
 }

@@ -8,7 +8,13 @@ import java.util.List;
  * @author Artem Loginov
  */
 public class XYSeries implements Iterable<Point> {
-    List<Point> content = new ArrayList<Point>();
+    private String name;
+
+    public XYSeries(String name) {
+        this.name = name;
+    }
+
+    private List<Point> content = new ArrayList<Point>();
 
     @Override
     public Iterator<Point> iterator() {
@@ -27,5 +33,9 @@ public class XYSeries implements Iterable<Point> {
         }
         buffer.append("]");
         return buffer.toString();
+    }
+
+    public String getName() {
+        return name;
     }
 }
